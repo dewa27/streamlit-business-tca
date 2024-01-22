@@ -36,7 +36,7 @@ class BindColormap(MacroElement):
         {% endmacro %}
         """) 
 APP_TITLE = 'Timedoor Academy Business Analyzer'
-APP_SUB_TITLE = '== Expansion Team =='
+# APP_SUB_TITLE = '== Expansion Team =='
 # state_name=""
 # def display_time_filters(df):
 #     year_list = list(df['Year'].unique())
@@ -164,7 +164,7 @@ def display_metrics(df_metrics,district_name,kabkot_name):
 def main():
     st.set_page_config(APP_TITLE,layout='wide')
     st.title(APP_TITLE)
-    st.caption(APP_SUB_TITLE)
+    st.markdown('''Made with Love :green_heart: :green_heart:  __Expansion Team__ :green_heart: :green_heart:''')
 
     #Load Data
     df_jkt_geojson= gpd.read_file(r'data/jakarta_formatted.geojson')
@@ -187,7 +187,7 @@ def main():
     st.subheader(f'{district_name} in {kabkot_name}  Facts')
     display_metrics(df_mix_metrics,district_name,kabkot_name)
 
-    st.dataframe(df_mix_metrics)
+    # st.dataframe(df_mix_metrics)
 
     # col1, col2, col3 = st.columns(3)
     # with col1:
