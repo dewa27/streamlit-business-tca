@@ -6,10 +6,8 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium,folium_static
 import geopandas as gpd
-from folium import plugins
 from branca.element import MacroElement
 from jinja2 import Template
-from shapely import wkt
 import numpy as np
 
 class BindColormap(MacroElement):
