@@ -164,7 +164,6 @@ def display_metrics(df_metrics,district_name,kabkot_name):
 def main():
     st.set_page_config(APP_TITLE,layout='wide')
     st.title(APP_TITLE)
-    st.markdown('''Made with Love :green_heart: :green_heart:  __Expansion Team__ :green_heart: :green_heart:''')
 
     #Load Data
     df_jkt_geojson= gpd.read_file(r'data/jakarta_formatted.geojson')
@@ -184,8 +183,9 @@ def main():
     district_name,kabkot_name=display_map(df_mix_choropleth,df_mix_geojson)
 
     # Display Metrics
-    st.subheader(f'{district_name} in {kabkot_name}  Facts')
-    display_metrics(df_mix_metrics,district_name,kabkot_name)
+    if(not district_name=='' and not kabkot_name==''):
+        st.subheader(f'{district_name} in {kabkot_name}  Facts')
+        display_metrics(df_mix_metrics,district_name,kabkot_name)
 
     # st.dataframe(df_mix_metrics)
 
@@ -196,7 +196,7 @@ def main():
     #     display_fraud_facts(df_median, year, quarter, report_type, state_name, 'Overall Median Losses Qtr', 'Median $ Loss', is_median=True)
     # with col3:
     #     display_fraud_facts(df_loss, year, quarter, report_type, state_name, 'Total Losses', 'Total $ Loss')        
-
+    st.markdown('''Made with Love :green_heart: :green_heart:  __Expansion Team__ :green_heart: :green_heart:''')
 
 if __name__ == "__main__":
     main()
