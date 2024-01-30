@@ -9,7 +9,8 @@ import geopandas as gpd
 from branca.element import MacroElement
 from jinja2 import Template
 import numpy as np
-
+import time
+import random
 class BindColormap(MacroElement):
     """Binds a colormap to a given layer.
 
@@ -104,26 +105,19 @@ def display_map(df_choropleth,df_district_jkt_geojson):
     with st.form(key="smth"):
         state_name=''
         kabkot_name=''
-        col1,col2=st.columns([3,2])
-        with col1:
-
-            st_map = st_folium(map,width=900,height=500)
-        with col2:
-            tuts_expander = st.expander("How to Use",expanded=True)
-            with tuts_expander:
-                st.markdown('''
-                            - Search the district that you want
-                            - Click the area of the district
-                            - Once the pop up shown, Click on ***Generate Data***
-                            - Hide this menu if you already understand :green_heart::green_heart:''')
-            
+        # col1,col2=st.columns([3,2])
+        # with col1:
+        st_map = st_folium(map,width=1400,height=500)
+        # with col2:            
+        with st.sidebar:
             submitted = st.form_submit_button("Generate Data")
-            
-            if submitted:
-                st.write(st_map['last_active_drawing']['properties'])
-                state_name=st_map['last_active_drawing']['properties']['district']
-                kabkot_name=st_map['last_active_drawing']['properties']['regency']
-                return state_name, kabkot_name
+
+        if submitted:
+            # st.write(st_map['last_active_drawing']['properties'])
+            state_name=st_map['last_active_drawing']['properties']['district']
+            kabkot_name=st_map['last_active_drawing']['properties']['regency']
+            return state_name, kabkot_name    
+        
     return state_name, kabkot_name
 
 def display_fraud_facts(df, year, quarter, report_type, state_name, field, title, string_format='${:,}', is_median=False):
@@ -161,32 +155,74 @@ def display_metrics(df_metrics,district_name,kabkot_name):
     with st.expander("Lihat Detail per Branch dan Kelurahan"):
         st.table(df_district)
 
+
+#Load Data
+df_jkt_geojson= gpd.read_file(r'data/jakarta_formatted.geojson')
+df_jkt_metrics=pd.read_excel("data/jakarta_metrics_data.xlsx",index_col=0)
+df_jkt_choropleth=pd.read_excel("data/choropleth_jakarta2.xlsx")
+df_jabodetabek= gpd.read_file(r'data/jabodetabek_formatted.geojson')
+df_jabodetabek_metrics=pd.read_excel("data/jabodetabek_metrics_data.xlsx",index_col=0)
+df_jabodetabek_choropleth=pd.read_excel("data/choropleth_jabodetabek.xlsx")
+# df_mix_geojson=gpd.GeoDataFrame(pd.concat([df_jkt_geojson,df_jabar_geojson], ignore_index=True) )
+# df_mix_metrics=pd.concat([df_jkt_metrics, df_jabar_metrics])
+# df_mix_choropleth=pd.concat([df_jkt_choropleth, df_jabar_choropleth])
+# st.dataframe(df_mix_choropleth)
+df_jabodetabek_choropleth= df_jabodetabek.merge(df_jabodetabek_choropleth, left_on=["district","regency"], right_on=["sync_name","regency"], how="outer") 
+df_jabodetabek_choropleth=df_jabodetabek_choropleth[['district','regency','geometry','active','inactive','jumlah_siswa']]
+df_jabodetabek_choropleth=df_jabodetabek_choropleth.replace('nan', np.nan).fillna(0)
+
+df_jkt_choropleth= df_jkt_geojson.merge(df_jkt_choropleth, left_on=["district","regency"], right_on=["sync_name","regency"], how="outer") 
+df_jkt_choropleth=df_jkt_choropleth[['district','regency','geometry','active','inactive','jumlah_siswa']]
+df_jkt_choropleth=df_jkt_choropleth.replace('nan', np.nan).fillna(0)
+
 def main():
     st.set_page_config(APP_TITLE,layout='wide')
     st.title(APP_TITLE)
 
-    #Load Data
-    df_jkt_geojson= gpd.read_file(r'data/jakarta_formatted.geojson')
-    df_jkt_metrics=pd.read_excel("data/jakarta_metrics_data.xlsx",index_col=0)
-    df_jkt_choropleth=pd.read_excel("data/choropleth_jakarta2.xlsx")
-    df_jabar_geojson= gpd.read_file(r'data/jabar_formatted.geojson')
-    df_jabar_metrics=pd.read_excel("data/jabar_metrics_data.xlsx",index_col=0)
-    df_jabar_choropleth=pd.read_excel("data/choropleth_jabar.xlsx")
-    df_mix_geojson=gpd.GeoDataFrame(pd.concat([df_jkt_geojson,df_jabar_geojson], ignore_index=True) )
-    df_mix_metrics=pd.concat([df_jkt_metrics, df_jabar_metrics])
-    df_mix_choropleth=pd.concat([df_jkt_choropleth, df_jabar_choropleth])
-    # st.dataframe(df_mix_choropleth)
-    df_mix_choropleth= df_mix_geojson.merge(df_mix_choropleth, left_on=["district","regency"], right_on=["sync_name","regency"], how="outer") 
-    df_mix_choropleth=df_mix_choropleth[['district','regency','geometry','active','inactive','jumlah_siswa']]
-    df_mix_choropleth=df_mix_choropleth.replace('nan', np.nan).fillna(0)
+    randint=random.randint(0,30)
+    with st.sidebar:
+        my_bar = st.progress(randint,text=str(randint)+"% - "+"Requesting the map to Cobee...")
+        time.sleep(1)
 
-    district_name,kabkot_name=display_map(df_mix_choropleth,df_mix_geojson)
+    with st.sidebar:
+        tuts_expander = st.expander("How to Use",expanded=True)
+        with tuts_expander:
+            st.markdown('''
+                        - Select regency from dropdown below
+                        - Search the district that you want on the map
+                        - Click the area of the district, pop up will show
+                        - Once the pop up shown, Click on ***Generate Data***
+                        - Hide this menu if you already understand :green_heart::green_heart:''')
+    option= st.sidebar.selectbox('Pilih daerah yang ingin dilihat',('Jakarta', 'Jabodetabek', 'Jawa Barat','Surabaya','Jawa Timur'))
+
+    randint=random.randint(50,75)
+    my_bar.progress(randint,text=str(randint)+"% - "+"Hold up, Let Cobee cook..")
+    time.sleep(0.02)
+    if option == 'Jakarta':
+        district_name,kabkot_name=display_map(df_jkt_choropleth,df_jkt_geojson)
+        df_selected_metrics=df_jkt_metrics
+    elif option == 'Jabodetabek':
+        district_name,kabkot_name=display_map(df_jabodetabek_choropleth,df_jabodetabek)
+        df_selected_metrics=df_jabodetabek_metrics
+    else:
+        e = RuntimeError("Oopsie ! Cobee had never explored that area before... :(")
+        st.exception(e)
+        my_bar.empty()
+        st.stop() 
+
 
     # Display Metrics
     if(not district_name=='' and not kabkot_name==''):
         st.subheader(f'{district_name} in {kabkot_name}  Facts')
-        display_metrics(df_mix_metrics,district_name,kabkot_name)
+        display_metrics(df_selected_metrics,district_name,kabkot_name)
+        my_bar.progress(100,text="100% - Your data is ready, scroll down the page to see it !.")
+    else:
+        my_bar.progress(100,text="100% - Done.")
 
+    with st.sidebar:
+        st.markdown('''Made with Love :green_heart:  __Expansion Team__ :green_heart: ''')
+    time.sleep(3)
+    my_bar.empty()
     # st.dataframe(df_mix_metrics)
 
     # col1, col2, col3 = st.columns(3)
@@ -196,7 +232,7 @@ def main():
     #     display_fraud_facts(df_median, year, quarter, report_type, state_name, 'Overall Median Losses Qtr', 'Median $ Loss', is_median=True)
     # with col3:
     #     display_fraud_facts(df_loss, year, quarter, report_type, state_name, 'Total Losses', 'Total $ Loss')        
-    st.markdown('''Made with Love :green_heart: :green_heart:  __Expansion Team__ :green_heart: :green_heart:''')
+
 
 if __name__ == "__main__":
     main()
