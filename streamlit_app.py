@@ -163,6 +163,9 @@ df_jkt_choropleth=pd.read_excel("data/choropleth_jakarta2.xlsx")
 df_jabodetabek= gpd.read_file(r'data/jabodetabek_formatted.geojson')
 df_jabodetabek_metrics=pd.read_excel("data/jabodetabek_metrics_data.xlsx",index_col=0)
 df_jabodetabek_choropleth=pd.read_excel("data/choropleth_jabodetabek.xlsx")
+df_jabar_geojson=gpd.read_file(r'data/jabar_formatted.geojson')
+df_jabar_metrics=pd.read_excel("data/jabar_metrics_data.xlsx",index_col=0)
+df_jabar_choropleth=pd.read_excel("data/choropleth_jabar.xlsx")
 # df_mix_geojson=gpd.GeoDataFrame(pd.concat([df_jkt_geojson,df_jabar_geojson], ignore_index=True) )
 # df_mix_metrics=pd.concat([df_jkt_metrics, df_jabar_metrics])
 # df_mix_choropleth=pd.concat([df_jkt_choropleth, df_jabar_choropleth])
@@ -174,6 +177,10 @@ df_jabodetabek_choropleth=df_jabodetabek_choropleth.replace('nan', np.nan).filln
 df_jkt_choropleth= df_jkt_geojson.merge(df_jkt_choropleth, left_on=["district","regency"], right_on=["sync_name","regency"], how="outer") 
 df_jkt_choropleth=df_jkt_choropleth[['district','regency','geometry','active','inactive','jumlah_siswa']]
 df_jkt_choropleth=df_jkt_choropleth.replace('nan', np.nan).fillna(0)
+
+df_jabar_choropleth= df_jabar_geojson.merge(df_jabar_choropleth, left_on=["district","regency"], right_on=["sync_name","regency"], how="outer") 
+df_jabar_choropleth=df_jabar_choropleth[['district','regency','geometry','active','inactive','jumlah_siswa']]
+df_jabar_choropleth=df_jabar_choropleth.replace('nan', np.nan).fillna(0)
 
 def main():
     st.set_page_config(APP_TITLE,layout='wide')
@@ -203,6 +210,9 @@ def main():
         df_selected_metrics=df_jkt_metrics
     elif option == 'Jabodetabek':
         district_name,kabkot_name=display_map(df_jabodetabek_choropleth,df_jabodetabek)
+        df_selected_metrics=df_jabodetabek_metrics
+    elif option == 'Jawa Barat':
+        district_name,kabkot_name=display_map(df_jabar_choropleth,df_jab)
         df_selected_metrics=df_jabodetabek_metrics
     else:
         e = RuntimeError("Oopsie ! Cobee had never explored that area before... :(")
